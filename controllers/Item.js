@@ -1,16 +1,30 @@
 const Item = require("../model/itemModel");
 const mongoose = require("mongoose");
+
 const createform = async (req, res) => {
   try {
     const { items, formId } = req.body;
+
     if (!formId || !Array.isArray(items)) {
       return res.status(400).json({ error: "Invalid data format" });
     }
+
     if (!mongoose.Types.ObjectId.isValid(formId)) {
       return res.status(400).json({ error: "Invalid formId" });
     }
-    const itemsWithFormId = items.map((item) => ({ ...item, formId }));
-    const savedItems = await Item.insertMany(itemsWithFormId);
+
+    const itemsWithFormIdAndNumber = await Promise.all(
+      items.map(async (item) => {
+        const count = await Item.countDocuments({ formId, type: item.type });
+        return {
+          ...item,
+          formId,
+          name: `${item.type} ${count + 1}`,
+        };
+      })
+    );
+
+    const savedItems = await Item.insertMany(itemsWithFormIdAndNumber);
 
     res.status(200).json({ message: "Items created successfully", savedItems });
   } catch (error) {
