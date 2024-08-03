@@ -1,29 +1,45 @@
 const Item = require("../model/itemModel");
-
+const mongoose = require("mongoose");
 const createform = async (req, res) => {
   try {
-    const { items } = req.body; // Expecting an array of items
-    console.log(items);
-    if (!Array.isArray(items)) {
-      //   console.log("item not in array");
+    const { items, formId } = req.body;
+    if (!formId || !Array.isArray(items)) {
       return res.status(400).json({ error: "Invalid data format" });
     }
+    if (!mongoose.Types.ObjectId.isValid(formId)) {
+      return res.status(400).json({ error: "Invalid formId" });
+    }
+    const itemsWithFormId = items.map((item) => ({ ...item, formId }));
+    const savedItems = await Item.insertMany(itemsWithFormId);
 
-    const savedItems = await Item.insertMany(items);
-    // res.status(201).json(savedItems);
-    res.status(200).json({ message: "item created successfully", savedItems });
+    res.status(200).json({ message: "Items created successfully", savedItems });
   } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Error creating items:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
   }
 };
 
-const getitem = async (req, res) => {
+const getItemsByForm = async (req, res) => {
   try {
-    const items = await Item.find(); // Retrieve all items from the database
+    const { formId } = req.params;
+    const items = await Item.find({ formId });
     res.status(200).json(items);
   } catch (error) {
-    console.error("Server error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
-module.exports = { createform, getitem };
+
+const deleteItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedItem = await Item.findByIdAndDelete(id);
+    if (!deletedItem) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { createform, getItemsByForm, deleteItem };

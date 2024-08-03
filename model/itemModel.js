@@ -21,6 +21,11 @@ const itemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  formId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Form",
+    required: true,
+  },
 });
 
 const Item = mongoose.model("Item", itemSchema);

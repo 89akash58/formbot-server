@@ -16,12 +16,13 @@ router.post("/newfolder", authenticateToken, folderRoute.createFolder);
 router.delete("/delete/:id", authenticateToken, folderRoute.deleteFolder);
 router.post("/:id/createform", authenticateToken, folderRoute.createForm);
 router.delete(
-  "/:id/deleteform/:formIndex",
+  "/:id/deleteform/:formId",
   authenticateToken,
   folderRoute.deleteForm
 );
 
 //itemform
-router.post("/create-form-item", authenticateToken, itemRoute.createform);
-router.get("/getitem", authenticateToken, itemRoute.getitem);
+router.post("/createformitem", authenticateToken, itemRoute.createform);
+router.get("/items/:formId", authenticateToken, itemRoute.getItemsByForm);
+router.delete("/deleteitem/:id", authenticateToken, itemRoute.deleteItem);
 module.exports = router;

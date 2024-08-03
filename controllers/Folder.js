@@ -66,22 +66,21 @@ const createForm = async (req, res) => {
     if (folder.userId.toString() !== req.user.id) {
       return res.status(401).json({ message: "unauthorized" });
     }
-    if (folder.forms.includes(formname)) {
+    if (folder.forms.some((form) => form.formname === formname)) {
       return res
         .status(400)
         .json({ message: "form with same name already exists" });
     }
-    folder.forms.push(formname);
+    folder.forms.push({ formname, items: [] });
     await folder.save();
     res.json(folder);
   } catch (error) {
     res.status(500).json({ message: "server error in creating the form" });
   }
 };
-
 const deleteForm = async (req, res) => {
   try {
-    const { id, formIndex } = req.params;
+    const { id, formId } = req.params;
     const folder = await Folder.findById(id);
     if (!folder) {
       return res.status(404).json({ message: "folder not found" });
@@ -90,15 +89,9 @@ const deleteForm = async (req, res) => {
       return res.status(401).json({ message: "unauthorized" });
     }
 
-    if (!Array.isArray(folder.forms)) {
-      return res.status(500).json({ message: "folder.forms is not an array" });
-    }
-
-    if (formIndex < 0 || formIndex >= folder.forms.length) {
-      return res.status(400).json({ message: "invalid formIndex" });
-    }
-
-    folder.forms.splice(formIndex, 1);
+    folder.forms = folder.forms.filter(
+      (form) => form._id.toString() !== formId
+    );
     await folder.save();
     res.json(folder);
   } catch (error) {
@@ -107,6 +100,7 @@ const deleteForm = async (req, res) => {
     res.status(500).json({ message: "server error in deleting the form" });
   }
 };
+
 module.exports = {
   allFolder,
   createFolder,
