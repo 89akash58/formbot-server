@@ -9,6 +9,7 @@ const { authenticateToken } = require("../middleware/authenticate");
 router.post("/register", userRoute.register);
 router.post("/login", userRoute.login);
 router.get("/dashboard", authenticateToken, userRoute.dashboard);
+router.patch("/updateuser/:userId", authenticateToken, userRoute.updateUser);
 
 //folder and form routes
 router.get("/folder", authenticateToken, folderRoute.allFolder);

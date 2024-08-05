@@ -26,6 +26,12 @@ const itemSchema = new mongoose.Schema({
     ref: "Form",
     required: true,
   },
+  content: {
+    type: String,
+  },
+  placeholder: {
+    type: String,
+  },
 });
 
 const Item = mongoose.model("Item", itemSchema);

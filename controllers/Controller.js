@@ -110,46 +110,34 @@ const dashboard = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { userId } = req.user; // Assuming userId is stored in req.user by authentication middleware
-  const { username, email, oldPassword, newPassword } = req.body;
-
-  // Validate input
-  // if (!username || !email || !oldPassword) {
-  //   return res
-  //     .status(400)
-  //     .json({ message: "Username, email, and old password are required" });
-  // }
-  if (newPassword && newPassword !== confirmNewPassword) {
-    return res.status(400).json({ message: "New passwords do not match" });
-  }
-
   try {
+    const { userId } = req.params;
+    const { username, email, newpassword, oldpassword } = req.body;
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Verify the old password
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Old password is incorrect" });
+    if (oldpassword && newpassword) {
+      const isMatch = await bcrypt.compare(oldpassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Old password is not correct" });
+      }
+      user.password = await bcrypt.hash(newpassword, 12);
+      user.confirmpassword = user.password;
     }
 
-    // Hash the new password if provided
-    let updatedPassword = user.password;
-    if (newPassword) {
-      updatedPassword = await bcrypt.hash(newPassword, 10);
-    }
+    if (username) user.username = username;
+    if (email) user.email = email;
 
-    // Update the user information
-    user.username = username;
-    user.email = email;
-    user.password = updatedPassword;
     await user.save();
 
-    res.status(200).json({ message: "User updated successfully" });
-  } catch (err) {
-    console.error(err);
+    res
+      .status(200)
+      .json({ success: true, message: "User updated successfully" });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
